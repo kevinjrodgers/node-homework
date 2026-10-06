@@ -71,10 +71,9 @@ fs.writeFile(path.join(__dirname, 'sample-files', 'sample.txt'), 'Hello, async w
   async function readFileAsyncAwait() {
       try {
         const content = await fs.promises.readFile(path.join(__dirname, 'sample-files', 'sample.txt'), 'utf-8');
-          if(error) { throw new Error(error.message); }
-          console.log('/async await', content);
+        console.log('/async await', content);
       } catch (error) {
-        console.error(error.message);
+        console.error('Async/await error:', error.message);
       }
   }
   readFileAsyncAwait();
