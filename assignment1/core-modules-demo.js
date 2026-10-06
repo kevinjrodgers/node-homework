@@ -12,7 +12,7 @@ console.log(`Platform: ${os.platform()}`);
 console.log(`CPU: ${os.cpus()[0].model}`);
 console.log(`Total Memory: ${os.totalmem()}`);
 // Path module
-console.log(`Joined path: ${path.join('path', 'sample-files', 'demo.txt')}`);
+console.log(`Joined path: ${path.join(__dirname, 'sample-files', 'demo.txt')}`);
 // fs.promises API
 async function writeAndReadFile() {
   const demoFilePath = path.join(__dirname, 'sample-files', 'demo.txt');
