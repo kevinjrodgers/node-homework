@@ -54,6 +54,7 @@ fs.writeFile(path.join(__dirname, 'sample-files', 'sample.txt'), 'Hello, async w
     fs.readFile(path.join(__dirname, 'sample-files', 'sample.txt'), 'utf-8', (error, content) => {
       if(error) {
         reject(`File read failed: ${error.message}`);
+        return;
       }
       resolve(content);
     });
