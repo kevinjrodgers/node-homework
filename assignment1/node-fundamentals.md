@@ -13,13 +13,17 @@ The V8 engine is essentially what browser JavaScript uses for Chrome/Chromium-ba
 Node.js is used for backend APIs, file management, and can be used to safely access environmental variables.
 
 ## Explain the difference between CommonJS and ES Modules. Give a code example of each.
-CommonJS uses the "const/require" keywords to import modules, while ES Modules uses the "import/from" keywords to import modules.
+CommonJS uses the "const/require" keywords to import modules, while ES Modules uses the "import/from" keywords to import modules. CommonJS is backwards compatible with older, legacy Node projects and it can be used throughout the file, while ES Modules can only be called at the beginning of the file. ES Modules are typically easier to read compared to CommonJS.
 **CommonJS (default in Node.js):**
 ```js
 const { myFunction } = require("../myExportedModule");
+...
+module.exports
 ```
 
 **ES Modules (supported in modern Node.js):**
 ```js
 import { useReducer } from "react";
+...
+export
 ``` 
