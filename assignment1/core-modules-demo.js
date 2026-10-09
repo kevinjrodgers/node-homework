@@ -33,7 +33,7 @@ function createLargeText() {
   let resultString = '';
   for(let i = 0; i <= 100; i++) {
     resultString = resultString + i.toString() + ' ' + loremString + '\n';
-    console.log(resultString);
+    //console.log(resultString);
   }
   return resultString;
 }
@@ -42,7 +42,9 @@ async function createLargeFile() {
   let content = createLargeText();
   try {
     await fs.writeFile(path.join(__dirname, 'sample-files', 'largefile.txt'), content, (error) => {
-      
+      if(error) {
+        throw new Error('Error creating large file:', error.message);
+      }
     });
   } catch(error) {
     console.error(error.message);
