@@ -30,10 +30,9 @@ app.post("/testpost", (req, res) => {
   });
 });
 */
+
 app.use(notFound);
 app.use(errorHandler);
-
-
 
 
 // Server shutdown code

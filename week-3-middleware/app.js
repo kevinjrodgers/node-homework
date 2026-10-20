@@ -1,12 +1,12 @@
 const express = require("express");
 const dogsRouter = require("./routes/dogs");
 const { randomUUID } = require("crypto");
+const path = require("node:path");
 
 const app = express();
 app.use(express.json());
 
 // Assignment 3b and 3c ask you to add middleware in this file.
-app.use(express.static("public"));
 
 // Request ID Middleware
 app.use((req, res, next) => {
@@ -21,6 +21,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Static File Middleware
+//app.use(express.static("public"));
+app.use("/images", express.static(path.join(__dirname, "public", "images")));
+
+// Dog Routes
 app.use("/", dogsRouter);// Do not remove this line
 
 // 404 Handler
