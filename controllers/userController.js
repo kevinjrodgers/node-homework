@@ -31,17 +31,17 @@ function logon(req, res) {
           name: global.users[i].name,
           email: global.users[i].email,
         });
+        return;
       } else {
         res.status(401).json({
           message: "Invalid email/password", // For testing purposes
         });
       }
-    } else {
-      res.status(401).json({
-        message: "Invalid email/password", // For testing purposes
-      });
-    }
+    } 
   }
+  res.status(401).json({
+    message: "Invalid email/password", // For testing purposes
+  });
 }
 
 function logoff(req, res) {
