@@ -2,7 +2,8 @@ const express = require("express");
 const dogsRouter = require("./routes/dogs");
 
 const app = express();
-
+app.use(express.json());
+app.use(express.static("public"));
 // Assignment 3b and 3c ask you to add middleware in this file.
 
 
