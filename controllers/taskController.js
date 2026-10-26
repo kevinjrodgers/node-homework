@@ -5,3 +5,12 @@ const taskCounter = (() => {
     return lastTaskNumber;
   }
 })();
+
+function createTask() {
+  return {
+    id: taskCounter(),
+    title: "Task "  + taskCounter,
+    isCompleted: false,
+    userId: global.user_id.email,
+  }
+}

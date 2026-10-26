@@ -1,3 +1,5 @@
+const { userSchema } = require("../validation/userSchema");
+
 function register(req, res) {
   console.log(req.body.name);
   console.log(req.body.email);
@@ -36,6 +38,7 @@ function logon(req, res) {
         res.status(401).json({
           message: "Invalid email/password", // For testing purposes
         });
+        return;
       }
     } 
   }
