@@ -78,8 +78,42 @@ function show(req, res) {
   });
 }
 
+function update(req, res) {
+  // Validate the new title value
+  const { error, value } = patchTaskSchema.validate(req.body, {
+    abortEarly: false
+  });
+  if(error) {
+    return res.status(400).json({
+      message: "Invalid title"
+    });
+  }
+
+  const taskId = parseInt(req.params?.id, 10);
+  if(Number.isNaN(taskId)) {
+    return res.status(400).json({
+      message: "Invalid task ID"
+    });
+  }
+
+  for(let i = 0; i< global.tasks.length; i++) {
+    if((global.tasks[i].userId === global.user_id.email) && (global.tasks[i].id === taskId)) {
+      Object.assign(global.tasks[i], value);
+      let updatedTask = global.tasks[i];
+      const { userId, ...sanitizedTask } = updatedTask;
+      return res.status(200).json({
+        sanitizedTask
+      });
+    }
+  }
+  return res.status(404).json({
+    message: "No matching task exists"
+  });
+}
+
 module.exports = {
   create,
   index,
-  show
+  show,
+  update
 }
