@@ -32,6 +32,26 @@ function create(req, res) {
   return res.status(201).json(sanitizedTask);
 }
 
+function index(req, res) {
+  const userTasks = global.tasks.filter(
+    (task) => task.userId === global.user_id.email,
+  );
+  if(!userTasks) {
+    return res.status(404).json({
+      message: "This user has no tasks"
+    });
+  }
+  const sanitizedTasks = userTasks.map((task) => {
+    const { userId, ...sanitizedTask } = task;
+    return sanitizedTask;
+  });
+
+  return res.status(200).json({
+    tasks: sanitizedTasks
+  });
+}
+
 module.exports = {
   create,
+  index
 }
