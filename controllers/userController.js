@@ -14,7 +14,7 @@ async function register(req, res) {
   });
   if(error) {
     return res.status(400).json({
-      message: "Error registering user"
+      message: `Error registering user: ${error}`
     });
   } 
 
