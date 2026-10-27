@@ -51,7 +51,35 @@ function index(req, res) {
   });
 }
 
+function show(req, res) {
+  console.log(req.params.id);
+  const taskId = parseInt(req.params?.id, 10);
+  console.log(taskId);
+  console.log("NaN?: " + Number.isNaN(taskId));
+  if(Number.isNaN(taskId)) {
+    return res.status(400).json({
+      message: "Not a valid ID"
+    });
+  }
+  let foundTask;
+  for(let i = 0; i < global.tasks.length; i++) {
+    if((global.tasks[i].userId === global.user_id.email) && (global.tasks[i].id === taskId)) {
+      foundTask = global.tasks[i];
+      const { userId, ...sanitizedTask } = foundTask;
+      return res.status(200).json({
+        sanitizedTask
+      });
+    }
+  }
+
+  // Id not found
+  return res.status(404).json({
+    message: "No task with that ID exists"
+  });
+}
+
 module.exports = {
   create,
-  index
+  index,
+  show
 }
