@@ -8,7 +8,7 @@ const taskCounter = (() => {
   }
 })();
 
-function createTask(req, res) {
+function create(req, res) {
 
   if(!req.body) req.body = {};
   const { error, value } = taskSchema.validate(req.body, {
@@ -16,7 +16,7 @@ function createTask(req, res) {
   });
   if(error) {
     return res.status(400).json({
-      message: "Task creation error"
+      message: `Task creation error: ${error}`
     });
   }
 
@@ -28,6 +28,10 @@ function createTask(req, res) {
 
   const { userId, ...sanitizedTask } = newTask;
 
-  global.task = [...global.task, newTask];
+  global.tasks = [...global.tasks, newTask];
   return res.status(201).json(sanitizedTask);
+}
+
+module.exports = {
+  create,
 }
