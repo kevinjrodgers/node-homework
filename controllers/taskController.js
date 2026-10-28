@@ -99,9 +99,7 @@ function update(req, res) {
       Object.assign(global.tasks[i], value);
       let updatedTask = global.tasks[i];
       const { userId, ...sanitizedTask } = updatedTask;
-      return res.status(200).json({
-        sanitizedTask
-      });
+      return res.status(200).json(sanitizedTask);
     }
   }
   return res.status(404).json({
@@ -110,7 +108,7 @@ function update(req, res) {
 }
 
 function deleteTask(req, res) {
-  const taskId = parseInt(req.params.id, 10);
+  const taskId = parseInt(req.params?.id, 10);
   if(Number.isNaN(taskId)) {
     return res.status(400).json({
       message: "Invalid task ID"
