@@ -123,9 +123,7 @@ function deleteTask(req, res) {
   const deletedTask = global.tasks[taskIndex];
   const { userId, ...sanitizedTask } = deletedTask;
   global.tasks.splice(taskIndex, 1);
-  return res.status(200).json({
-    sanitizedTask
-  });
+  return res.status(200).json(sanitizedTask);
 }
 
 module.exports = {
