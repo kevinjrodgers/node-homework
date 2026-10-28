@@ -15,6 +15,13 @@ async function register(req, res) {
     });
   } 
 
+  const userIndex = global.users.findIndex(user => user.email === value.email);
+  if(userIndex !== -1) {
+    return res.status(409).json({
+      message: "User already exists"
+    });
+  }
+
   const hashedPassword = await hashPassword(value.password);
 
   const newUser = {
@@ -33,8 +40,6 @@ async function register(req, res) {
 }
 
 async function logon(req, res) {
-  console.log(req.body.email);
-  console.log(req.body.password);
 
   for(let i = 0; i < global.users.length; i++) {
     if(global.users[i].email === req.body.email) {

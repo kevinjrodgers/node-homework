@@ -50,10 +50,7 @@ function index(req, res) {
 }
 
 function show(req, res) {
-  console.log(req.params.id);
   const taskId = parseInt(req.params?.id, 10);
-  console.log(taskId);
-  console.log("NaN?: " + Number.isNaN(taskId));
   if(Number.isNaN(taskId)) {
     return res.status(400).json({
       message: "Not a valid ID"
@@ -114,7 +111,6 @@ function deleteTask(req, res) {
   }
 
   const taskIndex = global.tasks.findIndex(task => (task.id === taskId) && (global.user_id.email === task.userId));
-  console.log(taskIndex);
   if(taskIndex === -1) {
     return res.status(404).json({
       message: "No existing tasks match this ID"
