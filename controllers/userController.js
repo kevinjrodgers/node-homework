@@ -4,9 +4,6 @@ const util = require("util");
 const scrypt = util.promisify(crypto.scrypt);
 
 async function register(req, res) {
-  console.log(req.body.name);
-  console.log(req.body.email);
-  console.log(req.body.password);
   if(!req.body) req.body = {};
 
   const { error, value } = userSchema.validate(req.body, {
