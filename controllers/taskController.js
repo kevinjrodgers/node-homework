@@ -36,7 +36,7 @@ function index(req, res) {
   const userTasks = global.tasks.filter(
     (task) => task.userId === global.user_id.email,
   );
-  if(!userTasks) {
+  if(userTasks.length === 0) {
     return res.status(404).json({
       message: "This user has no tasks"
     });
@@ -64,9 +64,7 @@ function show(req, res) {
     if((global.tasks[i].userId === global.user_id.email) && (global.tasks[i].id === taskId)) {
       foundTask = global.tasks[i];
       const { userId, ...sanitizedTask } = foundTask;
-      return res.status(200).json({
-        sanitizedTask
-      });
+      return res.status(200).json(sanitizedTask);
     }
   }
 
