@@ -46,9 +46,7 @@ function index(req, res) {
     return sanitizedTask;
   });
 
-  return res.status(200).json({
-    tasks: sanitizedTasks
-  });
+  return res.status(200).json(sanitizedTasks);
 }
 
 function show(req, res) {
