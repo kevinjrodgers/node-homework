@@ -111,9 +111,33 @@ function update(req, res) {
   });
 }
 
+function deleteTask(req, res) {
+  const taskId = parseInt(req.params.id, 10);
+  if(Number.isNaN(taskId)) {
+    return res.status(400).json({
+      message: "Invalid task ID"
+    });
+  }
+
+  const taskIndex = global.tasks.findIndex(task => (task.id === taskId) && (global.user_id.email === task.userId));
+  console.log(taskIndex);
+  if(taskIndex === -1) {
+    return res.status(404).json({
+      message: "No existing tasks match this ID"
+    });
+  }
+  const deletedTask = global.tasks[taskIndex];
+  const { userId, ...sanitizedTask } = deletedTask;
+  global.tasks.splice(taskIndex, 1);
+  return res.status(200).json({
+    sanitizedTask
+  });
+}
+
 module.exports = {
   create,
   index,
   show,
-  update
+  update,
+  deleteTask
 }
