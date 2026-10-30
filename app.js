@@ -1,8 +1,14 @@
 const express = require("express");
+
+// Routes
 const timeRouter = require("./routes/timeRoutes");
 const userRouter = require("./routes/userRoutes");
+const taskRouter = require("./routes/taskRoutes");
+
+// Middleware
 const errorHandler = require("./middleware/error-handler");
 const notFound = require("./middleware/not-found");
+const authMiddleware = require("./middleware/auth");
 
 global.user_id = null;
 global.users = [];
@@ -13,6 +19,8 @@ app.use(express.json());
 
 app.use("/api", timeRouter);
 app.use("/api/users", userRouter);
+app.use("/api/tasks", authMiddleware, taskRouter);
+
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");
@@ -23,13 +31,6 @@ app.post("/testpost", (req, res) => {
     message: "POST route works",
   });
 });
-
-/*app.all("/{*splat}", (req, res) => {
-  res.status(404).json({
-    message: `No route found for ${req.method} ${req.path}`,
-  });
-});
-*/
 
 app.use(notFound);
 app.use(errorHandler);
