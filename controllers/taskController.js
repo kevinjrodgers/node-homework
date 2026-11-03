@@ -42,17 +42,23 @@ async function create(req, res) {
   return res.status(201).json(newTask);
 }
 
-function index(req, res) {
-  const userTasks = global.tasks.filter(
+async function index(req, res) {
+  const result = await pool.query("SELECT id, title, is_completed FROM tasks WHERE user_id = $1",
+    [global.user_id]
+  );
+
+  const userTasks = result.rows;
+  /*const userTasks = global.tasks.filter(
     (task) => task.userId === global.user_id.email,
   );
+  */
   if(userTasks.length === 0) {
     return res.status(404).json({
       message: "This user has no tasks"
     });
   }
   const sanitizedTasks = userTasks.map((task) => {
-    const { userId, ...sanitizedTask } = task;
+    const { user_id, ...sanitizedTask } = task;
     return sanitizedTask;
   });
 
