@@ -88,7 +88,27 @@ async function update(req, res) {
       message: "Invalid task ID"
     });
   }
+  let taskChange = value;
+  let keys = Object.keys(taskChange);
+  keys = keys.map((key) => key === "isCompleted" ? "is_completed" : key);
+  const setClauses = keys.map((key, i) => `${key} = $${i + 1}`).join(", ");
+  const idParm = `$${keys.length + 1}`;
+  const userParm = `$${keys.length + 2}`;
+  const result = await pool.query(`UPDATE tasks SET ${setClauses}
+    WHERE id = ${idParm} AND user_id = ${userParm} RETURNING id, title, is_completed`, 
+    [...Object.values(taskChange), req.params.id, global.user_id]);
 
+  if(result.rows.length === 0) {
+    return res.status(404).json({
+      message: "No matching task exists"
+    });
+  }
+  const updatedTask = result.rows[0];
+  const { user_id, ...sanitizedTask } = updatedTask;
+  return res.status(200).json(sanitizedTask);
+
+  /*
+  const { user_id, sanitizedTask } = updatedTask;
   for(let i = 0; i< global.tasks.length; i++) {
     if((global.tasks[i].userId === global.user_id.email) && (global.tasks[i].id === taskId)) {
       Object.assign(global.tasks[i], value);
@@ -97,9 +117,11 @@ async function update(req, res) {
       return res.status(200).json(sanitizedTask);
     }
   }
+  
   return res.status(404).json({
     message: "No matching task exists"
   });
+    */
 }
 
 async function deleteTask(req, res) {
