@@ -21,24 +21,11 @@ async function create(req, res) {
     });
   }
 
-  /*const newTask =  {
-    id: taskCounter(),
-    userId: global.user_id.email,
-    ...value 
-  };
-  */
-
   const result = await pool.query(`INSERT INTO tasks (title, is_completed, user_id)
     VALUES ( $1, $2, $3 ) RETURNING id, title, is_completed`,  
     [value.title, value.isCompleted, global.user_id]);
   
   const newTask = result.rows[0];
-
-  
-  //const { userId, ...sanitizedTask } = newTask;
-
-  //global.tasks = [...global.tasks, newTask];
-  //return res.status(201).json(sanitizedTask);
   return res.status(201).json(newTask);
 }
 
@@ -48,10 +35,6 @@ async function index(req, res) {
   );
 
   const userTasks = result.rows;
-  /*const userTasks = global.tasks.filter(
-    (task) => task.userId === global.user_id.email,
-  );
-  */
   if(userTasks.length === 0) {
     return res.status(404).json({
       message: "This user has no tasks"
@@ -87,7 +70,7 @@ function show(req, res) {
   });
 }
 
-function update(req, res) {
+async function update(req, res) {
   // Validate the new title value
   const { error, value } = patchTaskSchema.validate(req.body, {
     abortEarly: false
@@ -118,7 +101,7 @@ function update(req, res) {
   });
 }
 
-function deleteTask(req, res) {
+async function deleteTask(req, res) {
   const taskId = parseInt(req.params?.id, 10);
   if(Number.isNaN(taskId)) {
     return res.status(400).json({
@@ -126,7 +109,19 @@ function deleteTask(req, res) {
     });
   }
 
-  const taskIndex = global.tasks.findIndex(task => (task.id === taskId) && (global.user_id.email === task.userId));
+  const result = await pool.query("DELETE FROM tasks WHERE id = $1 AND user_id = $2 RETURNING id, title",
+    [taskId, global.user_id] 
+  );
+
+  if(result.rows.length === 0) {
+    return res.status(404).json({
+      message: "No existing tasks match this ID"
+    });
+  }
+  
+  const deletedTask = result.rows[0];
+
+  /*const taskIndex = global.tasks.findIndex(task => (task.id === taskId) && (global.user_id.email === task.userId));
   if(taskIndex === -1) {
     return res.status(404).json({
       message: "No existing tasks match this ID"
@@ -136,6 +131,8 @@ function deleteTask(req, res) {
   const { userId, ...sanitizedTask } = deletedTask;
   global.tasks.splice(taskIndex, 1);
   return res.status(200).json(sanitizedTask);
+  */
+ return res.status(200).json(deletedTask);
 }
 
 module.exports = {
