@@ -25,11 +25,11 @@ async function register(req, res, next) {
       VALUES ($1, $2, $3) RETURNING id, email, name`,
       [value.email, value.name, value.hashed_password]
     ); // note that you use a parameterized query
-  } catch (error) { // the email might already be registered
-    if (error.code === "23505") { // this means the unique constraint for email was violated
+  } catch(error) { // the email might already be registered
+    if(error.code === "23505") { // this means the unique constraint for email was violated
       // here you return the 400 and the error message.  Use a return statement, so that 
       // you don't keep going in this function
-      return res.status(409).json({
+      return res.status(400).json({
         message: "User already exists"
       });
     }

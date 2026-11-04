@@ -26,7 +26,12 @@ async function create(req, res) {
     [value.title, value.isCompleted, global.user_id]);
   
   const newTask = result.rows[0];
-  return res.status(201).json(newTask);
+  const convertedTask = {
+    id: newTask.id,
+    title: newTask.title,
+    isCompleted: newTask.is_completed
+  }
+  return res.status(201).json(convertedTask);
 }
 
 async function index(req, res) {
