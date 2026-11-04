@@ -48,26 +48,27 @@ async function index(req, res) {
   return res.status(200).json(sanitizedTasks);
 }
 
-function show(req, res) {
+async function show(req, res) {
   const taskId = parseInt(req.params?.id, 10);
   if(Number.isNaN(taskId)) {
     return res.status(400).json({
       message: "Not a valid ID"
     });
   }
-  let foundTask;
-  for(let i = 0; i < global.tasks.length; i++) {
-    if((global.tasks[i].userId === global.user_id.email) && (global.tasks[i].id === taskId)) {
-      foundTask = global.tasks[i];
-      const { userId, ...sanitizedTask } = foundTask;
-      return res.status(200).json(sanitizedTask);
-    }
-  }
 
-  // Id not found
-  return res.status(404).json({
-    message: "No task with that ID exists"
-  });
+  const result = await pool.query("SELECT * FROM tasks WHERE id = $1 AND user_id = $2",
+    [taskId, global.user_id]
+  );
+
+  if(result.rows.length === 0) {
+    // Id not found
+    return res.status(404).json({
+      message: "No task with that ID exists"
+    });
+  }
+  let foundTask = result.rows[0];
+  const { user_id, ...sanitizedTask } = foundTask;
+  return res.status(200).json(sanitizedTask);
 }
 
 async function update(req, res) {
@@ -108,7 +109,6 @@ async function deleteTask(req, res) {
       message: "Invalid task ID"
     });
   }
-
   const result = await pool.query("DELETE FROM tasks WHERE id = $1 AND user_id = $2 RETURNING id, title",
     [taskId, global.user_id] 
   );
@@ -118,21 +118,8 @@ async function deleteTask(req, res) {
       message: "No existing tasks match this ID"
     });
   }
-  
   const deletedTask = result.rows[0];
-
-  /*const taskIndex = global.tasks.findIndex(task => (task.id === taskId) && (global.user_id.email === task.userId));
-  if(taskIndex === -1) {
-    return res.status(404).json({
-      message: "No existing tasks match this ID"
-    });
-  }
-  const deletedTask = global.tasks[taskIndex];
-  const { userId, ...sanitizedTask } = deletedTask;
-  global.tasks.splice(taskIndex, 1);
-  return res.status(200).json(sanitizedTask);
-  */
- return res.status(200).json(deletedTask);
+  return res.status(200).json(deletedTask);
 }
 
 module.exports = {
