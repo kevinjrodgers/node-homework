@@ -6,19 +6,15 @@ SELECT o.order_id, SUM(p.price * l.quantity) AS total_price FROM products AS p J
 SELECT c.customer_name, AVG(total_price) AS average_order_price FROM customers AS c JOIN (SELECT o.customer_id, o.order_id, SUM(p.price * l.quantity) AS total_price FROM products AS p JOIN line_items AS l ON p.product_id = l.product_id JOIN orders AS o ON l.order_id = o.order_id GROUP BY o.customer_id, o.order_id) AS t ON c.customer_id = t.customer_id GROUP BY c.customer_id, c.customer_name ORDER BY c.customer_name;
 
 
-
 # Task 3: Creating a New Order
-# 16 is the customer_id
-# INSERT INTO line_items (order_id, product_id, quantity) (SELECT order_id FROM new_order, SELECT product_id FROM products ORDER BY price ASC LIMIT 5), 10;
 SELECT customer_id FROM customers WHERE customer_name = 'Perez and Sons';
 SELECT employee_id FROM employees WHERE first_name = 'Miranda' AND last_name = 'Harris';
 SELECT product_id FROM products ORDER BY price ASC LIMIT 5;
 BEGIN;
-WITH new_order AS (INSERT INTO orders (customer_id, employee_id, date) VALUES ((SELECT customer_id FROM customers WHERE customer_name = 'Perez and Sons'), (SELECT employee_id FROM employees WHERE first_name = 'Miranda' AND last_name = 'Harris'), '2026-10-31') RETURNING order_id)
-INSERT INTO line_items (order_id, product_id, quantity) SELECT new_order.order_id, products.product_id, 10 FROM new_order CROSS JOIN products ORDER BY price ASC LIMIT 5;
+INSERT INTO orders (customer_id, employee_id, date) VALUES ((SELECT customer_id FROM customers WHERE customer_name = 'Perez and Sons'), (SELECT employee_id FROM employees WHERE first_name = 'Miranda' AND last_name = 'Harris'), '2026-10-31') RETURNING order_id;
+INSERT INTO line_items (order_id, product_id, quantity) SELECT $1, product_id, 10 FROM products ORDER BY price ASC LIMIT 5;
 COMMIT;
-SELECT * FROM line_items WHERE line_items.order_id = new_order.order_id;
-
+SELECT * FROM line_items WHERE order_id = 250;
 
 
 # Task 4: Aggregation with Having
