@@ -12,8 +12,6 @@ const notFound = require("./middleware/not-found");
 const authMiddleware = require("./middleware/auth");
 
 global.user_id = null;
-global.users = [];
-global.tasks = [];
 
 const app = express();
 app.use(express.json());

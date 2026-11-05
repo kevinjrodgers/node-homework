@@ -38,7 +38,7 @@ async function register(req, res, next) {
   const newUser = result.rows[0];
   // otherwise user now contains the new user.  You can return a 201 and the appropriate
   // object.  Be sure to also set global.user_id with the id of the user record you just created. 
-  global.user_id = newUser;
+  global.user_id = newUser.id;
 
   res.status(201).json({
     name: newUser.name,
