@@ -2,8 +2,9 @@ const { userSchema } = require("../validation/userSchema");
 const crypto = require("crypto");
 const util = require("util");
 const scrypt = util.promisify(crypto.scrypt);
+const pool = require("../db/pg-pool");
 
-async function register(req, res) {
+async function register(req, res, next) {
   if(!req.body) req.body = {};
 
   const { error, value } = userSchema.validate(req.body, {
@@ -11,58 +12,67 @@ async function register(req, res) {
   });
   if(error) {
     return res.status(400).json({
-      message: `Error registering user: ${error}`
+      message: "Validation failed",
+      details: error.details,
     });
   } 
 
-  const userIndex = global.users.findIndex(user => user.email === value.email);
-  if(userIndex !== -1) {
-    return res.status(409).json({
-      message: "User already exists"
-    });
+  let result = null;
+  value.hashed_password = await hashPassword(value.password);
+  // the code to here is like the in-memory version
+  try {
+    result = await pool.query(`INSERT INTO users (email, name, hashed_password)
+      VALUES ($1, $2, $3) RETURNING id, email, name`,
+      [value.email, value.name, value.hashed_password]
+    ); // note that you use a parameterized query
+  } catch(error) { // the email might already be registered
+    if(error.code === "23505") { // this means the unique constraint for email was violated
+      // here you return the 400 and the error message.  Use a return statement, so that 
+      // you don't keep going in this function
+      return res.status(400).json({
+        message: "User already exists"
+      });
+    }
+    return next(error); // all other errors get passed to the error handler
   }
-
-  const hashedPassword = await hashPassword(value.password);
-
-  const newUser = {
-    name: value.name,
-    email: value.email,
-    hashedPassword
-  }
-
-  global.users = [...global.users, newUser];
-  global.user_id = newUser;
+  const newUser = result.rows[0];
+  // otherwise user now contains the new user.  You can return a 201 and the appropriate
+  // object.  Be sure to also set global.user_id with the id of the user record you just created. 
+  global.user_id = newUser.id;
 
   res.status(201).json({
     name: newUser.name,
     email: newUser.email,
   });
+
 }
 
 async function logon(req, res) {
 
-  for(let i = 0; i < global.users.length; i++) {
-    if(global.users[i].email === req.body.email) {
-      const goodCredentials = global.users[i] && await comparePassword(req.body.password, global.users[i].hashedPassword);
-      if(goodCredentials) {
-        global.user_id = global.users[i];
+  const { email, password } = req.body;
+  const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+  // If no user found in database
+  if(result.rows.length === 0) { 
+    res.status(401).json({
+      message: "Invalid email/password", // For testing purposes
+    });
+    return; 
+  }
 
-        res.status(200).json({
-          name: global.users[i].name,
-          email: global.users[i].email,
+  // If user exists in database, compare passwords
+  const goodCredentials = await comparePassword(password, result.rows[0].hashed_password);
+  if(goodCredentials) {
+        global.user_id = result.rows[0].id;
+
+        return res.status(200).json({
+          name: result.rows[0].name,
+          email: result.rows[0].email,
         });
-        return;
-      } else {
-        res.status(401).json({
+  } else {
+        return res.status(401).json({
           message: "Invalid email/password", // For testing purposes
         });
-        return;
-      }
-    } 
   }
-  res.status(401).json({
-    message: "Invalid email/password", // For testing purposes
-  });
 }
 
 function logoff(req, res) {
