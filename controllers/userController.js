@@ -3,7 +3,6 @@ const prisma = require("../db/prisma");
 const crypto = require("crypto");
 const util = require("util");
 const scrypt = util.promisify(crypto.scrypt);
-const pool = require("../db/pg-pool");
 
 async function register(req, res, next) {
   if(!req.body) req.body = {};
