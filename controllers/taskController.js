@@ -108,24 +108,29 @@ async function update(req, res, next) {
   }
 }
 
-async function deleteTask(req, res) {
+async function deleteTask(req, res, next) {
   const taskId = parseInt(req.params?.id, 10);
   if(Number.isNaN(taskId)) {
     return res.status(400).json({
       message: "Invalid task ID"
     });
   }
-  const result = await pool.query("DELETE FROM tasks WHERE id = $1 AND user_id = $2 RETURNING id, title",
-    [taskId, global.user_id] 
-  );
-
-  if(result.rows.length === 0) {
-    return res.status(404).json({
-      message: "No existing tasks match this ID"
+  
+  try {
+    const deletedTask = await prisma.task.delete({
+      where: { id: taskId, userId: global.user_id },
+      select: { id: true, title: true }
     });
+    return res.status(200).json(deletedTask);
+  } catch(error) {
+    if(error.code === "P2025") {
+      return res.status(404).json({
+        message: "No existing tasks match this ID"
+      });
+    } else {
+      return next(error);
+    }
   }
-  const deletedTask = result.rows[0];
-  return res.status(200).json(deletedTask);
 }
 
 module.exports = {
