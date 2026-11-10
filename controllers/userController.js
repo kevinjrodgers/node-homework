@@ -18,25 +18,27 @@ async function register(req, res, next) {
     });
   } 
 
-  let result = null;
-  value.hashed_password = await hashPassword(value.password);
+  value.hashedPassword = await hashPassword(value.password);
   // the code to here is like the in-memory version
+  let user = null;
+  const { name, email, hashedPassword } = value;
   try {
-    result = await pool.query(`INSERT INTO users (email, name, hashed_password)
-      VALUES ($1, $2, $3) RETURNING id, email, name`,
-      [value.email, value.name, value.hashed_password]
-    ); // note that you use a parameterized query
+    user = await prisma.user.create({
+      data: { name, email, hashedPassword },
+      select: { name: true, email: true, id: true }
+    });
   } catch(error) { // the email might already be registered
-    if(error.code === "23505") { // this means the unique constraint for email was violated
+    if(error.name === "PrismaClientKnownRequestError" && error.code === "P2002") { // this means the unique constraint for email was violated
       // here you return the 400 and the error message.  Use a return statement, so that 
       // you don't keep going in this function
       return res.status(400).json({
         message: "User already exists"
       });
+    } else {
+      return next(error); // all other errors get passed to the error handler
     }
-    return next(error); // all other errors get passed to the error handler
   }
-  const newUser = result.rows[0];
+  const newUser = user;
   // otherwise user now contains the new user.  You can return a 201 and the appropriate
   // object.  Be sure to also set global.user_id with the id of the user record you just created. 
   global.user_id = newUser.id;
