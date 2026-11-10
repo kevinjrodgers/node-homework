@@ -53,20 +53,21 @@ async function show(req, res) {
     });
   }
 
-  const result = await pool.query("SELECT * FROM tasks WHERE id = $1 AND user_id = $2",
-    [taskId, global.user_id]
-  );
+  const task = await prisma.task.findUnique({
+    where: { id: taskId, userId: global.user_id },
+    select: { id: true, title: true, isCompleted: true }
+  });
 
-  if(result.rows.length === 0) {
+  if(task === null) {
     // Id not found
     return res.status(404).json({
       message: "No task with that ID exists"
-    });
+    }); 
   }
-  let foundTask = result.rows[0];
-  const { user_id, ...sanitizedTask } = foundTask;
-  return res.status(200).json(sanitizedTask);
+
+  return res.status(200).json(task);
 }
+  
 
 async function update(req, res, next) {
   // Validate the new title value
