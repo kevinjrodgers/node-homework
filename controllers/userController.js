@@ -1,4 +1,5 @@
 const { userSchema } = require("../validation/userSchema");
+const prisma = require("../db/prisma");
 const crypto = require("crypto");
 const util = require("util");
 const scrypt = util.promisify(crypto.scrypt);
@@ -48,11 +49,12 @@ async function register(req, res, next) {
 }
 
 async function logon(req, res) {
-
-  const { email, password } = req.body;
-  const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+  let { email } = req.body;
+  const { password } = req.body;
+  email = email.toLowerCase();
+  const user = await prisma.user.findUnique({ where: { email }});
   // If no user found in database
-  if(result.rows.length === 0) { 
+  if(user === null) { 
     res.status(401).json({
       message: "Invalid email/password", // For testing purposes
     });
@@ -60,13 +62,13 @@ async function logon(req, res) {
   }
 
   // If user exists in database, compare passwords
-  const goodCredentials = await comparePassword(password, result.rows[0].hashed_password);
+  const goodCredentials = await comparePassword(password, user.hashedPassword);
   if(goodCredentials) {
-        global.user_id = result.rows[0].id;
+        global.user_id = user.id;
 
         return res.status(200).json({
-          name: result.rows[0].name,
-          email: result.rows[0].email,
+          name: user.name,
+          email: user.email,
         });
   } else {
         return res.status(401).json({
