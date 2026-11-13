@@ -14,7 +14,7 @@ async function create(req, res) {
   const { title, isCompleted } = value;
   const task = await prisma.task.create({
     data: { title, isCompleted, userId: global.user_id },
-    select: { id: true, title: true, isCompleted: true },
+    select: { id: true, title: true, isCompleted: true, priority: true },
   })
   return res.status(201).json(task);
 }
@@ -24,7 +24,7 @@ async function index(req, res) {
     where: {
       userId: global.user_id,
     },
-    select: { id: true, title: true, isCompleted: true }
+    select: { id: true, title: true, isCompleted: true, priority: true }
   });
 
   if(tasks.length === 0) {
@@ -46,7 +46,7 @@ async function show(req, res) {
 
   const task = await prisma.task.findUnique({
     where: { id: taskId, userId: global.user_id },
-    select: { id: true, title: true, isCompleted: true }
+    select: { id: true, title: true, isCompleted: true, priority: true }
   });
 
   if(task === null) {
@@ -85,7 +85,7 @@ async function update(req, res, next) {
         id: taskId,
         userId: global.user_id
       },
-      select: { id: true, title: true, isCompleted: true }
+      select: { id: true, title: true, isCompleted: true, priority: true }
     });
     return res.status(200).json(task);
   } catch(error) {
@@ -110,7 +110,7 @@ async function deleteTask(req, res, next) {
   try {
     const deletedTask = await prisma.task.delete({
       where: { id: taskId, userId: global.user_id },
-      select: { id: true, title: true }
+      select: { id: true, title: true, priority: true }
     });
     return res.status(200).json(deletedTask);
   } catch(error) {
