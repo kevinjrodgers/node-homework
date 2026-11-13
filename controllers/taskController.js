@@ -1,6 +1,8 @@
 const { taskSchema, patchTaskSchema } = require("../validation/taskSchema");
 const prisma = require("../db/prisma");
 
+
+// Create
 async function create(req, res) {
   if(!req.body) req.body = {};
   const { error, value } = taskSchema.validate(req.body, {
@@ -19,12 +21,24 @@ async function create(req, res) {
   return res.status(201).json(task);
 }
 
+// Index
 async function index(req, res) {
   const tasks = await prisma.task.findMany({
     where: {
       userId: global.user_id,
     },
-    select: { id: true, title: true, isCompleted: true, priority: true }
+    select: { 
+      id: true, 
+      title: true, 
+      isCompleted: true, 
+      priority: true,
+      User: {
+        select: {
+          name: true,
+          email: true
+        }
+      }
+    }
   });
 
   if(tasks.length === 0) {
@@ -36,6 +50,7 @@ async function index(req, res) {
   
 }
 
+// Show
 async function show(req, res) {
   const taskId = parseInt(req.params?.id, 10);
   if(Number.isNaN(taskId)) {
@@ -59,7 +74,7 @@ async function show(req, res) {
   return res.status(200).json(task);
 }
   
-
+// Update
 async function update(req, res, next) {
   // Validate the new title value
   const { error, value } = patchTaskSchema.validate(req.body, {
@@ -99,6 +114,7 @@ async function update(req, res, next) {
   }
 }
 
+// Delete
 async function deleteTask(req, res, next) {
   const taskId = parseInt(req.params?.id, 10);
   if(Number.isNaN(taskId)) {
