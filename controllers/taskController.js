@@ -23,6 +23,12 @@ async function create(req, res) {
 
 // Index
 async function index(req, res) {
+  // Parse pagination parameters
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  // Get tasks with pagination and eager loading
   const tasks = await prisma.task.findMany({
     where: {
       userId: global.user_id,
@@ -38,6 +44,16 @@ async function index(req, res) {
           email: true
         }
       }
+    },
+    skip: skip,
+    take: limit,
+    orderBy: { createdAt: 'desc' }
+  });
+
+  // Get total count for pagination metadata
+  const totalTasks = await prisma.task.count({
+    where: {
+      userId: global.user_id
     }
   });
 
@@ -46,8 +62,25 @@ async function index(req, res) {
       message: "This user has no tasks"
     });
   }
-  return res.status(200).json(tasks);
-  
+
+  // Build pagination object with complete metadata
+  // Hint: The test expects page, limit, total, pages, hasNext, hasPrev
+  // Use Math.ceil() to calculate pages, and compare page * limit with total for hasNext
+  const pagination = {
+    page: page,
+    limit: limit,
+    total: totalTasks,
+    pages: Math.ceil(totalTasks/limit),
+    hasNext: (page * limit) < totalTasks ? true : false,
+    hasPrev: (page === 1 ? false : true)
+  };
+
+  const taskWithPagination = {
+    ...tasks,
+    pagination
+  }
+
+  return res.status(200).json(taskWithPagination);
 }
 
 // Show
