@@ -28,11 +28,18 @@ async function index(req, res) {
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
+  // Build where clause with optional search filter
+  const whereClause = { userId: global.user_id };
+  if(req.query.find) {
+    whereClause.title = {
+      contains: req.query.find,   // Matches %find% pattern
+      mode: 'insensitive'   // Case-insensitive search (ILIKE in PostgreSQL)
+    }
+  }
+
   // Get tasks with pagination and eager loading
   const tasks = await prisma.task.findMany({
-    where: {
-      userId: global.user_id,
-    },
+    where: whereClause,
     select: { 
       id: true, 
       title: true, 
@@ -52,9 +59,7 @@ async function index(req, res) {
 
   // Get total count for pagination metadata
   const totalTasks = await prisma.task.count({
-    where: {
-      userId: global.user_id
-    }
+    where: whereClause
   });
 
   if(tasks.length === 0) {
