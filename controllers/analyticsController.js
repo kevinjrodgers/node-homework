@@ -70,7 +70,62 @@ async function getUserAnalytics(req, res) {
 }
 
 
+async function getUsersWithStats(req, res) {
+  // Parse pagination parameters
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const usersRaw = await prisma.user.findMany({
+    include: {
+      Task: {
+        where: { isCompleted: false },
+        select: { id: true },
+        take: 5
+      },
+      _count: {
+        select: {
+          Task: true
+        }
+      }
+    },
+    skip: skip,
+    take: limit,
+    orderBy: { createdAt: 'desc' }
+  });
+
+  // Transform result to only include the fields we want
+  const users = usersRaw.map(user => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    createdAt: user.createdAt,
+    _count: user._count,
+    Task: user.Task
+  }));
+
+  // Get total count for pagination
+  const totalUsers = await prisma.user.count();
+
+  // Build pagination object with page, limit, total, pages, hasNext, hasPrev
+  // Hint: Use Math.ceil() for pages, compare page * limit with total for hasNext
+  const pagination = {
+    page: page,
+    limit: limit,
+    total: totalUsers,
+    pages: Math.ceil(totalUsers/limit),
+    hasNext: (page * limit) < totalUsers ? true : false,
+    hasPrev: (page === 1 ? false : true)
+  };
+
+  return res.status(200).json({
+    users: users,
+    pagination: pagination
+  });
+}
+
 
 module.exports = {
-  getUserAnalytics
+  getUserAnalytics,
+  getUsersWithStats
 };
