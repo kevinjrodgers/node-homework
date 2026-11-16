@@ -5,7 +5,7 @@ const prisma = require("./db/prisma");
 const timeRouter = require("./routes/timeRoutes");
 const userRouter = require("./routes/userRoutes");
 const taskRouter = require("./routes/taskRoutes");
-
+const analyticsRouter = require("./routes/analyticsRoutes");
 // Middleware
 const errorHandler = require("./middleware/error-handler");
 const notFound = require("./middleware/not-found");
@@ -19,7 +19,7 @@ app.use(express.json());
 app.use("/api", timeRouter);
 app.use("/api/users", userRouter);
 app.use("/api/tasks", authMiddleware, taskRouter);
-
+app.use("/api/analytics", analyticsRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");
