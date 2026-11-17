@@ -91,7 +91,10 @@ async function index(req, res) {
     pagination
   }
 
-  return res.status(200).json(taskWithPagination);
+  return res.status(200).json({
+    tasks: tasks,
+    pagination: pagination
+  });
 }
 
 // Show
