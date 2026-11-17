@@ -86,11 +86,6 @@ async function index(req, res) {
     hasPrev: (page === 1 ? false : true)
   };
 
-  const taskWithPagination = {
-    ...tasks,
-    pagination
-  }
-
   return res.status(200).json({
     tasks: tasks,
     pagination: pagination
@@ -108,7 +103,18 @@ async function show(req, res) {
 
   const task = await prisma.task.findUnique({
     where: { id: taskId, userId: global.user_id },
-    select: { id: true, title: true, isCompleted: true, priority: true }
+    select: { 
+      id: true,
+      title: true,
+      isCompleted: true,
+      priority: true,
+      User: {
+        select: {
+          name: true,
+          email: true
+        }
+      }
+    }
   });
 
   if(task === null) {
