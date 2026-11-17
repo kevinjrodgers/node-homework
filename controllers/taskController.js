@@ -71,6 +71,12 @@ async function index(req, res) {
   // Build pagination object with complete metadata
   // Hint: The test expects page, limit, total, pages, hasNext, hasPrev
   // Use Math.ceil() to calculate pages, and compare page * limit with total for hasNext
+  if(page < 1 || limit < 1 || limit > 100) {
+    return res.status(404).json({
+      error: "Outside of pagination page/limit"
+    });
+  } 
+
   const pagination = {
     page: page,
     limit: limit,
@@ -144,7 +150,7 @@ async function update(req, res, next) {
   } catch(error) {
     if(error.code === "P2025") {
       return res.status(404).json({
-        message: "No matching task exists"
+        message: "No matching task was found"
       });
     } else {
       return next(error);
