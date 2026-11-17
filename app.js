@@ -19,7 +19,7 @@ app.use(express.json());
 app.use("/api", timeRouter);
 app.use("/api/users", userRouter);
 app.use("/api/tasks", authMiddleware, taskRouter);
-app.use("/api/analytics", analyticsRouter);
+app.use("/api/analytics", authMiddleware, analyticsRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");
