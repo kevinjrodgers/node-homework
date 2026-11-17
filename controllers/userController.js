@@ -23,7 +23,7 @@ async function register(req, res, next) {
   const { name, email, hashedPassword } = value;
   try {
     const result = await prisma.$transaction(async (tx) => {
-      user = await prisma.user.create({
+      user = await tx.user.create({
         data: { name, email, hashedPassword },
         select: { id: true, name: true, email: true, createdAt: true  }
       });
