@@ -77,7 +77,7 @@ async function getUsersWithStats(req, res) {
   const skip = (page - 1) * limit;
 
   if(page < 1 || limit < 1 || limit > 100) {
-    return res.status(404).json({
+    return res.status(400).json({
       error: "Outside of pagination page/limit"
     });
   } 

@@ -28,6 +28,12 @@ async function index(req, res) {
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
+  if(page < 1 || limit < 1 || limit > 100) {
+    return res.status(400).json({
+      error: "Outside of pagination page/limit"
+    });
+  } 
+
   // Build where clause with optional search filter
   const whereClause = { userId: global.user_id };
   if(req.query.find) {
@@ -62,21 +68,9 @@ async function index(req, res) {
     where: whereClause
   });
 
-  /*if(tasks.length === 0) {
-    return res.status(404).json({
-      message: "This user has no tasks"
-    });
-  }
-    */
-
   // Build pagination object with complete metadata
   // Hint: The test expects page, limit, total, pages, hasNext, hasPrev
   // Use Math.ceil() to calculate pages, and compare page * limit with total for hasNext
-  if(page < 1 || limit < 1 || limit > 100) {
-    return res.status(404).json({
-      error: "Outside of pagination page/limit"
-    });
-  } 
 
   const pagination = {
     page: page,
