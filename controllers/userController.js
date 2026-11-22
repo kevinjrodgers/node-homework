@@ -22,31 +22,57 @@ async function register(req, res, next) {
   let user = null;
   const { name, email, hashedPassword } = value;
   try {
-    user = await prisma.user.create({
-      data: { name, email, hashedPassword },
-      select: { name: true, email: true, id: true }
+    const result = await prisma.$transaction(async (tx) => {
+      user = await tx.user.create({
+        data: { name, email, hashedPassword },
+        select: { id: true, name: true, email: true, createdAt: true  }
+      });
+      
+      const welcomeTaskData = [
+        { title: "Complete your profile", userId: user.id, priority: "medium" },
+        { title: "Add your first task", userId: user.id, priority: "high" },
+        { title: "Explore the app", userId: user.id, priority: "low" }
+      ];
+      await tx.task.createMany({ data: welcomeTaskData });
+
+      // Fetch the created tasks to return them
+      const welcomeTasks = await tx.task.findMany({
+        where: {
+          userId: user.id,
+          title: { in: welcomeTaskData.map(t => t.title) }
+        },
+        select: {
+          id: true,
+          title: true,
+          isCompleted: true,
+          userId: true,
+          priority: true
+        }
+      });
+
+      return { user: user, welcomeTasks };
+    });
+
+    // otherwise user now contains the new user.  You can return a 201 and the appropriate
+    // object.  Be sure to also set global.user_id with the id of the user record you just created. 
+    global.user_id = result.user.id;
+
+    return res.status(201).json({
+      user: result.user,
+      welcomeTasks: result.welcomeTasks,
+      transactionStatus: "success"
     });
   } catch(error) { // the email might already be registered
     if(error.name === "PrismaClientKnownRequestError" && error.code === "P2002") { // this means the unique constraint for email was violated
       // here you return the 400 and the error message.  Use a return statement, so that 
       // you don't keep going in this function
       return res.status(400).json({
-        message: "User already exists"
+        message: "Email already registered"
       });
     } else {
       return next(error); // all other errors get passed to the error handler
     }
   }
-  const newUser = user;
-  // otherwise user now contains the new user.  You can return a 201 and the appropriate
-  // object.  Be sure to also set global.user_id with the id of the user record you just created. 
-  global.user_id = newUser.id;
-
-  res.status(201).json({
-    name: newUser.name,
-    email: newUser.email,
-  });
-
 }
 
 async function logon(req, res) {
