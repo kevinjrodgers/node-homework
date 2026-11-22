@@ -46,11 +46,10 @@ async function getUserAnalytics(req, res) {
   // Calculate weekly progress using groupBy
   // First, calculate the date from one week ago
   // Hint: Use new Date() and setDate() to subtract 7 days
-  const date = new Date().getTime();
-  //const newDate = new Date(date - 6.048e+8);
-  //console.log(newDate.toLocaleString());
-  const oneWeekAgo = new Date(date - 6.048e+8).toISOString();
 
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  
   // Then use groupBy with a where clause filtering by createdAt >= oneWeekAgo
   const weeklyProgress = await prisma.task.groupBy({
     by: ['createdAt'],
