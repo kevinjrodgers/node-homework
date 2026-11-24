@@ -9,16 +9,12 @@ const analyticsRouter = require("./routes/analyticsRoutes");
 // Middleware
 const errorHandler = require("./middleware/error-handler");
 const notFound = require("./middleware/not-found");
-const authMiddleware = require("./middleware/auth");
 const cookieParser = require("cookie-parser");
-
-const app = express();
-app.use(express.json());
-app.set("trust proxy", 1);
 
 const helmet = require("helmet");
 const { xss } = require("express-xss-sanitizer");
 const rateLimiter = require("express-rate-limit");
+const app = express();
 
 app.use(
   rateLimiter({
@@ -27,6 +23,9 @@ app.use(
   }),
 );
 
+app.use(express.json());
+app.set("trust proxy", 1);
+
 app.use(cookieParser());
 app.use(helmet());
 app.use(xss()); 
@@ -34,7 +33,7 @@ app.use(xss());
 app.use("/api", timeRouter);
 app.use("/api/users", userRouter);
 app.use("/api/tasks", taskRouter);
-app.use("/api/analytics", authMiddleware, analyticsRouter);
+app.use("/api/analytics", analyticsRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");
