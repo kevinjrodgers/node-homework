@@ -3,6 +3,26 @@ const prisma = require("../db/prisma");
 const crypto = require("crypto");
 const util = require("util");
 const scrypt = util.promisify(crypto.scrypt);
+const { randomUUID } = require("crypto");
+const jwt = require('jsonwebtoken');
+
+const cookieFlags = (req) => {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // only when HTTPS is available
+    sameSite: "Strict",
+  };
+};
+
+const setJwtCookie = (req, res, user) => {
+  // Sign JWT
+  const payload = { id: user.id, csrfToken: randomUUID() };
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" }); // 1 hour expiration
+  // Set cookie.  Note that the cookie flags have to be different in production and in test.
+  res.cookie("jwt", token, { ...cookieFlags(req), maxAge: 3600000 }); // 1 hour expiration
+  return payload.csrfToken; // This is needed in the body returned by logon() or register()
+};
+
 
 async function register(req, res, next) {
   if(!req.body) req.body = {};
@@ -50,17 +70,20 @@ async function register(req, res, next) {
         }
       });
 
-      return { user: user, welcomeTasks };
+      return { user: user, welcomeTasks, };
     });
 
     // otherwise user now contains the new user.  You can return a 201 and the appropriate
     // object.  Be sure to also set global.user_id with the id of the user record you just created. 
-    global.user_id = result.user.id;
+    //global.user_id = result.user.id;
+
+    const csrfToken = setJwtCookie(req, res, result.user);
 
     return res.status(201).json({
       user: result.user,
       welcomeTasks: result.welcomeTasks,
-      transactionStatus: "success"
+      transactionStatus: "success",
+      csrfToken: csrfToken
     });
   } catch(error) { // the email might already be registered
     if(error.name === "PrismaClientKnownRequestError" && error.code === "P2002") { // this means the unique constraint for email was violated
@@ -91,11 +114,13 @@ async function logon(req, res) {
   // If user exists in database, compare passwords
   const goodCredentials = await comparePassword(password, user.hashedPassword);
   if(goodCredentials) {
-        global.user_id = user.id;
+        const csrfToken = setJwtCookie(req, res, user);
+        //global.user_id = user.id;
 
         return res.status(200).json({
           name: user.name,
           email: user.email,
+          csrfToken: csrfToken
         });
   } else {
         return res.status(401).json({
@@ -105,7 +130,8 @@ async function logon(req, res) {
 }
 
 function logoff(req, res) {
-  global.user_id = null;
+  //global.user_id = null;
+  res.clearCookie("jwt", cookieFlags(req));
   res.status(200).json({
     message: "Logoff successful"
   });
