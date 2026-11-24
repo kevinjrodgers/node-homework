@@ -10,15 +10,17 @@ const analyticsRouter = require("./routes/analyticsRoutes");
 const errorHandler = require("./middleware/error-handler");
 const notFound = require("./middleware/not-found");
 const authMiddleware = require("./middleware/auth");
+const cookieParser = require("cookie-parser");
 
 global.user_id = null;
 
 const app = express();
 app.use(express.json());
 
+app.use(cookieParser());
 app.use("/api", timeRouter);
 app.use("/api/users", userRouter);
-app.use("/api/tasks", authMiddleware, taskRouter);
+app.use("/api/tasks", taskRouter);
 app.use("/api/analytics", authMiddleware, analyticsRouter);
 
 app.get("/", (req, res) => {

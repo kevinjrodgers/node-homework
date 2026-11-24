@@ -4,6 +4,9 @@ const taskController = require("../controllers/taskController");
 
 const router = express.Router();
 
+const jwtMiddleware = require("../middleware/jwtMiddleware");
+
+router.use(jwtMiddleware);
 router.post("/", taskController.create);
 router.post("/bulk", taskController.bulkCreate);
 router.get("/", taskController.index);
